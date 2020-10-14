@@ -13,6 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from pandas.core.common import flatten
+#import time
 
 st.title("Trip Advisor France Scrapper")
 st.sidebar.write("""
@@ -42,6 +43,43 @@ button_was_clicked = st.sidebar.button("SUBMIT")
 #url = 'https://www.tripadvisor.fr/Attractions-g11038881-Activities-c40-Occitanie.html'
 #url = 'https://www.tripadvisor.fr/Attractions-g187144-Activities-c61-Ile_de_France.html'
 #url = 'https://www.tripadvisor.fr/Attractions-g11038881-Activities-c56-t208-oa30-Occitanie.html'
+def get_emails(val):
+    if isinstance(val, dict):
+        for k, v in val.items():
+            if k == 'email':
+                if v:
+                    yield v
+            else:
+                yield from get_emails(v)
+    elif isinstance(val, list):
+        for v in val:
+            yield from get_emails(v)
+            
+def get_phones(val):
+    if isinstance(val, dict):
+        for k, v in val.items():
+            if k == 'phone':
+                if v:
+                    yield v
+            else:
+                yield from get_phones(v)
+    elif isinstance(val, list):
+        for v in val:
+            yield from get_phones(v)
+            
+def get_websites(val):
+    if isinstance(val, dict):
+        for k, v in val.items():
+            if k == 'website':
+                if v:
+                    yield v
+            else:
+                yield from get_websites(v)
+    elif isinstance(val, list):
+        for v in val:
+            yield from get_websites(v)
+
+
 def tripadvisor(urll):
     html = requests.get(urll).text
     soup=BeautifulSoup(html,"html.parser")
@@ -76,89 +114,63 @@ def tripadvisor(urll):
         data = json.loads(data.replace('pageManifest', '"pageManifest"'))
         soup=BeautifulSoup(html_data,"html.parser")
         
-        def get_emails(val):
-            if isinstance(val, dict):
-                for k, v in val.items():
-                    if k == 'email':
-                        if v:
-                            yield v
-                    else:
-                        yield from get_emails(v)
-            elif isinstance(val, list):
-                for v in val:
-                    yield from get_emails(v)
-                    
-        def get_phones(val):
-            if isinstance(val, dict):
-                for k, v in val.items():
-                    if k == 'phone':
-                        if v:
-                            yield v
-                    else:
-                        yield from get_phones(v)
-            elif isinstance(val, list):
-                for v in val:
-                    yield from get_phones(v)
-                    
-        def get_websites(val):
-            if isinstance(val, dict):
-                for k, v in val.items():
-                    if k == 'website':
-                        if v:
-                            yield v
-                    else:
-                        yield from get_websites(v)
-            elif isinstance(val, list):
-                for v in val:
-                    yield from get_websites(v)
-        
         try:
-            
+            mail1=[]
             for email in get_emails(data):
                 email = base64.b64decode(email).decode('utf-8')
                 email = re.search(r'mailto:(.*)_', email).group(1)
-                mail1 = []
                 mail1.append(email)
-            mail.append(mail1[0])
+            if len(mail1) == 0:
+                mail.append("Not available")
+            else:
+                mail.append(mail1[0])
+    
         except:
-            for email in get_emails(data):
+            try:
                 mail1 = []
-                mail1.append(email)
-            mail.append(mail1[0])
-        
-        #print(mail[0])
+                for email in get_emails(data):
+                    mail1.append(email)
+                mail.append(mail1[0])
+            except:
+                mail.append("Not available")
         
         
         try:
-            
+            phone1=[]
             for email in get_phones(data):
                 email = base64.b64decode(email).decode('utf-8')
-                phone1 = []
                 phone1.append(email)
-            phone.append(phone1[0])
+            if len(phone1) == 0:
+                phone.append("Not available")
+            else:
+                phone.append(phone1[0])            
         except:
-            for email in get_phones(data):
+            try:
                 phone1 = []
-                phone1.append(email)
-            phone.append(phone1[0])    
+                for email in get_phones(data):
+                    phone1.append(email)
+                phone.append(phone1[0])
+            except:
+                phone.append("Not available")
         
         #print(phone[0])
-        
-    
         try:
-        
+            website1=[]
             for email in get_websites(data):
                 email = base64.b64decode(email).decode('utf-8')
-                website1=[]
                 website1.append(email)
-            website.append(website1[0])
+            if len(website1) == 0:
+                website.append("Not available")
+            else:
+                website.append(website1[0])            
         except:
-            for email in get_websites(data):
-                website1=[]
-                website1.append(email)
-            website.append(website1[0]) 
-    
-    #print(website[0])
+            try:
+                website1 = []
+                for email in get_phones(data):
+                    website1.append(email)
+                website.append(website1[0])
+            except:
+                website.append("Not available")        
     
     
         try:
@@ -176,7 +188,7 @@ def tripadvisor(urll):
             # except:
             #      address.append('not available')
         except:
-            address.append('not available')
+            address.append('Not available')
     
     address = list(flatten(address))
     hotel_data['Hotel Website'] = website
