@@ -208,7 +208,7 @@ else:
     
 csv = main_data.to_csv(index=False)
 b64 = base64.b64encode(csv.encode()).decode()
-href = f'<a href="data:file/csv;base64,{b64}">Download CSV File</a> (while downloading save by writing file name with .csv)'
+href = f'<a href="data:file/csv;base64,{b64}" download="tripadvisor_data.csv">Download CSV File</a>'
 st.markdown(href, unsafe_allow_html=True)
 st.text("")
 st.text("")
